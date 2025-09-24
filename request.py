@@ -12,6 +12,7 @@ load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
 FOLDER_ID = os.getenv("FOLDER_ID")
+FILE_BUCKET = os.getenv("FILE_BUCKET")
 
 
 def pretty_api_error(response):
@@ -37,7 +38,7 @@ def pretty_api_error(response):
 def main(file_path: str):
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    file_uri = f"https://storage.yandexcloud.net/{file_path}"
+    file_uri = f"https://storage.yandexcloud.net/{FILE_BUCKET}/{file_path}"
 
     request_data = {
         "uri": file_uri,
@@ -57,7 +58,9 @@ def main(file_path: str):
             }
         },
         "speakerLabeling": {
-            "speakerLabeling": "SPEAKER_LABELING_DISABLED"
+            "enable": True,
+            "minSpeakers": 2,
+            "maxSpeakers": 5
         }
     }
 
@@ -117,6 +120,7 @@ def main(file_path: str):
         raise RuntimeError(
             f"Result request failed: {speech_response.status_code}\n{pretty_api_error(speech_response)}"
         )
+
     return speech_response.text
 
 
@@ -130,7 +134,7 @@ if __name__ == "__main__":
         result = main(FILE_PATH)
 
         # сохраняем в файл .json
-        output_file = os.path.splitext(FILE_PATH)[0] + ".json"
+        output_file = "out/" + os.path.splitext(FILE_PATH)[0] + ".json"
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(result)
 
